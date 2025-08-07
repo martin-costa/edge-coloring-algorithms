@@ -16,7 +16,7 @@ public class FastGreedy implements EdgeColoringAlgorithm {
     public EdgeColoring color(Graph graph) {
 
         // Create an empty (2 + epsilon)Delta-edge coloring
-        int maxColor = ((int)Math.ceil(2 + epsilon)) * graph.maxDegree();
+        int maxColor = (int)Math.ceil((2 + epsilon) * graph.maxDegree());
 
         EdgeColoring coloring = new EdgeColoring(graph, maxColor);
 

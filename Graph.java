@@ -61,33 +61,6 @@ public class Graph {
     }
 }
 
-// class Edge {
-
-//     // TODO: Implement Edge class so that (u,v) = (v,u)
-
-//     // Vertices of the edge
-//     private int u;
-//     private int v;
-
-//     public Edge(int u, int v) {
-//         this.u = u;
-//         this.v = v;
-//     }
-
-//     public int u() {
-//         return u;
-//     }
-
-//     public int v() {
-//         return v;
-//     }
-
-//     @Override
-//     public String toString() {
-//         return "(" + u + ", " + v + ")";
-//     }
-// }
-
 class Edge {
     private final int u;
     private final int v;

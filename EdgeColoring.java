@@ -46,6 +46,9 @@ public class EdgeColoring {
         this.m = graph.m();
         this.maxDegree = graph.maxDegree();
 
+        // The maximum color used by the algorithm
+        this.maxColor = maxColor;
+
         // Initialize the data structures
         this.coloring = new HashMap<Edge, Integer>();
 
@@ -58,17 +61,17 @@ public class EdgeColoring {
 
         this.vertexColorToEdge = new HashMap<Pair<Integer, Integer>, Integer>();
         
+        // NOTE: Explicitly initializing the missing colors for each vertex takes O(n * maxColor) time.
+        // We only store the missing colors in the range [1, deg(u) + 1], this suffices to always find a missing color.
         this.missingColors = new HashMap<Integer, Set<Integer>>();
         for (Integer vertex : edges.keySet()) {
+            int vertexMaxColor = Math.min(edges.get(vertex).size() + 1, maxColor);
             Set<Integer> colors = new HashSet<>();
-            for (int color = 1; color <= maxColor; color++) {
+            for (int color = 1; color <= vertexMaxColor; color++) {
                 colors.add(color); // Initialize with all possible colors
             }
             missingColors.put(vertex, colors);
         }
-
-        // The maximum color used by the algorithm
-        this.maxColor = maxColor;
     }
 
     // Constructor for EdgeColoring with default maxColor
@@ -94,7 +97,6 @@ public class EdgeColoring {
         missingColors.get(v).add(color);
 
         coloring.put(edge, 0); // Uncolor the edge
-        coloring.put(new Edge(v, u), 0); // Uncolor the reverse edge
 
         return true;
     }
@@ -118,7 +120,6 @@ public class EdgeColoring {
         
         // Update the data structures
         coloring.put(edge, color);
-        coloring.put(new Edge(v, u), color);
         vertexColorToEdge.put(new Pair<>(u, color), v);
         vertexColorToEdge.put(new Pair<>(v, color), u);
         missingColors.get(u).remove(color);
@@ -145,11 +146,6 @@ public class EdgeColoring {
         return vertexColorToEdge.get(new Pair<>(vertex, color));
     }
 
-    // Get the set of missing colors for a vertex
-    public Set<Integer> getAllMissingColors(int vertex) {
-        return missingColors.get(vertex);
-    }
-
     // Get a missing color for a vertex
     public Integer getMissingColor(int vertex) {
         Set<Integer> colors = missingColors.get(vertex);
@@ -161,7 +157,7 @@ public class EdgeColoring {
 
     // Check if a vertex has a missing color
     public boolean isMissing(int vertex, int color) {
-        return missingColors.get(vertex).contains(color);
+        return vertexColorToEdge.get(new Pair<>(vertex, color)) == null;
     }
 
     // Get the edges of the graph
@@ -182,5 +178,110 @@ public class EdgeColoring {
     // Get the maximum degree of the graph
     public int maxDegree() {
         return maxDegree;
+    }
+
+    // Get the maximum color used by the algorithm
+    public int maxColor() {
+        return maxColor;
+    }
+
+    // Flip the (c1, c2)-alternating path starting from vertex
+    public boolean FlipAlternatingPath(int vertex, int c1, int c2) {
+        
+        boolean missingC1 = isMissing(vertex, c1);
+        boolean missingC2 = isMissing(vertex, c2);
+
+        if (missingC1 && missingC2) {
+            return false; // Alternating path is empty
+        }
+
+        if (!missingC1 && !missingC2) {
+            return false; // Vertex has both colors, no (c1,c2)-alternating path starts here
+        }
+
+        // Determine the current color to start flipping
+        Integer nextColor = null;
+        if (!missingC1) {
+            nextColor = c1;
+        }
+        if (!missingC2) {
+            nextColor = c2;
+        }
+
+        int currentVertex = vertex;
+
+        // Construct the alternating path
+        List<Edge> path = new ArrayList<>();
+        
+        while (!isMissing(currentVertex, nextColor)) {
+
+            // Get the edge incident on currentVertex with nextColor
+            Integer neighbor = getEdgeWithColorAtVertex(currentVertex, nextColor);
+            if (neighbor == null) {
+                throw new IllegalStateException("Algorithm failed to flip path: No edge with color " + nextColor + " was found incident on vertex " + currentVertex);
+            }
+
+            Edge edge = new Edge(currentVertex, neighbor);
+            path.add(edge);
+
+            // Move to the neighbor vertex
+            currentVertex = neighbor;
+
+            // Alternate the color for the next iteration
+            nextColor = (nextColor == c1) ? c2 : c1;
+        }
+
+        // Flip the colors along the path. Note that we must ensure that the coloring is valid at all times.
+        HashMap<Edge, Integer> newColors = new HashMap<>();
+        
+        // Uncolor the edges in the path
+        for (Edge edge : path) {
+            int currentColor = getEdgeColor(edge);
+            int newColor = (currentColor == c1) ? c2 : c1;
+            newColors.put(edge, newColor);
+            uncolorEdge(edge);
+        }
+
+        // Set the new colors for the edges in the path
+        for (Edge edge : path) {
+            int newColor = newColors.get(edge);
+            if (!setEdgeColor(edge, newColor)) {
+                throw new IllegalStateException("Failed to set new color " + newColor + " for edge " + edge + ". This should not happen if the algorithm is correct.");
+            }
+        }
+
+        return true; // Successfully flipped the alternating path
+    }
+
+    // Checks if the edge coloring is valid
+    public boolean isValid(boolean verbose) {
+        
+        boolean valid = true;
+        boolean complete = true;
+
+        for (Integer u : edges.keySet()) {
+            Set<Integer> colorsAtU = new HashSet<>();
+
+            for (Integer v : edges.get(u)) {
+                Edge edge = new Edge(u, v);
+
+                if (complete && coloring.get(edge) == 0) {
+                    complete = false; // Found an uncolored edge
+                }
+                if (valid && coloring.get(edge) == null) {
+                    valid = false; // Edge not found in coloring
+                } else if (valid && colorsAtU.contains(coloring.get(edge))) {
+                    valid = false; // Duplicate color at vertex u
+                } else {
+                    colorsAtU.add(coloring.get(edge));
+                }
+            }
+        }
+
+        if (verbose) {
+            System.out.println("Edge coloring (valid: " + valid + ", complete: " + complete + ")");
+        }
+
+        return valid;
     }
 }
