@@ -53,5 +53,4 @@ public class VizingBipartite implements EdgeColoringAlgorithm {
 
         return coloring;
     }
-
 }

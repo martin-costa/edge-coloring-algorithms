@@ -7,13 +7,15 @@ public class Test {
     // main function to run tests
     public static void main(String[] args) {
 
-        Graph graph = createRandomGraph(100, 300, true);
+        Graph graph = createRandomGraph(1000, 300000, false);
 
         FastGreedy fastGreedy = new FastGreedy(0.1f);
 
         VizingBipartite vizingBipartite = new VizingBipartite();
 
-        EdgeColoring edgeColoring = vizingBipartite.color(graph);
+        Vizing vizing = new Vizing();
+
+        EdgeColoring edgeColoring = vizing.color(graph);
 
         edgeColoring.isValid(true);
 

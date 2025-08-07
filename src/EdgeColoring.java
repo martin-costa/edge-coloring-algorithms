@@ -101,6 +101,10 @@ public class EdgeColoring {
         return true;
     }
 
+    public boolean uncolorEdge(int u, int v) {
+        return uncolorEdge(new Edge(u, v));
+    }
+
     public boolean setEdgeColor(Edge edge, int color) {
 
         // If input invalid or no change needed
@@ -187,12 +191,16 @@ public class EdgeColoring {
 
     // Flip the (c1, c2)-alternating path starting from vertex
     public boolean FlipAlternatingPath(int vertex, int c1, int c2) {
+
+        if (c1 == c2) {
+            return true; // No need to flip if colors are the same
+        }
         
         boolean missingC1 = isMissing(vertex, c1);
         boolean missingC2 = isMissing(vertex, c2);
 
         if (missingC1 && missingC2) {
-            return false; // Alternating path is empty
+            return true; // Alternating path is empty
         }
 
         if (!missingC1 && !missingC2) {
@@ -282,6 +290,6 @@ public class EdgeColoring {
             System.out.println("Edge coloring (valid: " + valid + ", complete: " + complete + ")");
         }
 
-        return valid;
+        return valid && complete;
     }
 }
