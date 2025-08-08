@@ -7,42 +7,58 @@ public class Test {
     // main function to run tests
     public static void main(String[] args) {
 
-        Graph graph = createRandomGraph(1000, 300000, false);
+        getMemoryStatistics();
 
-        FastGreedy fastGreedy = new FastGreedy(0.1f);
+        // Create a random graph for testing
+        System.out.println("Constructing a random graph...");
+        Graph graph = createRandomGraph(4000, 0.2f, true);
 
-        VizingBipartite vizingBipartite = new VizingBipartite();
+        getMemoryStatistics();
+
+        // Vizing
+        System.out.println("Running Vizing's algorithm...");
 
         Vizing vizing = new Vizing();
+        EdgeColoring edgeColoring1 = vizing.color(graph);
+        edgeColoring1.isValid(true);
 
-        EdgeColoring edgeColoring = vizing.color(graph);
+        getMemoryStatistics();
 
-        edgeColoring.isValid(true);
+        // Bipartite Vizing
+        System.out.println("Running Vizing's Bipartite algorithm...");
 
-        System.out.print("Number of vertices: " + graph.n() + 
-                           ", Number of edges: " + graph.m() +
-                           ", Max degree: " + graph.maxDegree() + "\n");
+        VizingBipartite vizingBipartite = new VizingBipartite();
+        EdgeColoring edgeColoring2 = vizingBipartite.color(graph);
+        edgeColoring2.isValid(true);
 
-        System.out.print("Max color used: " + edgeColoring.maxColor() + "\n");
+        getMemoryStatistics();
 
-        // System.out.print("Path flipping test successful: " + testPathFlip() + "\n");
+        // Greedy
+        System.out.println("Running Greedy algorithm...");
 
-        // EdgeColoring edgeColoring = new EdgeColoring(graph);
+        FastGreedy fastGreedy = new FastGreedy(0.1f);
+        EdgeColoring edgeColoring3 = fastGreedy.color(graph);
+        edgeColoring3.isValid(true);
 
-        // System.out.print("Number of vertices: " + graph.n() + 
-        //                    ", Number of edges: " + graph.m() +
-        //                    ", Max degree: " + graph.maxDegree() + "\n");
-
-        // edgeColoring.setEdgeColor(new Edge(20, 11), 1);
-        // edgeColoring.setEdgeColor(new Edge(20, 12), 2);
-        // edgeColoring.setEdgeColor(new Edge(20, 12), 0);
+        getMemoryStatistics();
     }
 
-    public static Graph createRandomGraph(int n, float m, boolean bipartite) {
+    public static Graph createRandomGraph(int n, float density, boolean bipartite) {
+
+        if (density < 0 || density > 1) {
+            throw new IllegalArgumentException("Density must be between 0 and 1");
+        }
 
         // Make sure that n is even if bipartite
         if (bipartite && n % 2 != 0) {
             n++;
+        }
+
+        // Calculate the number of edges based on the density
+        int m = (int) (density * n * (n - 1) / 2); // Maximum number of edges in a complete graph
+
+        if (bipartite) {
+            m = (int) (density * (n / 2) * (n / 2 - 1)); // Maximum edges in a bipartite graph
         }
 
         HashMap<Integer, Set<Integer>> edges = new HashMap<Integer, Set<Integer>>();
@@ -116,5 +132,20 @@ public class Test {
         }
 
         return true; // All colors flipped correctly
+    }
+
+    public static void getMemoryStatistics() {
+
+        // Get the singleton instance of the Runtime class
+        Runtime runtime = Runtime.getRuntime();
+
+        // Run garbage collection to get a more accurate measure of used memory
+        runtime.gc();
+
+        long totalMemory = runtime.totalMemory(); // Total memory allocated to the JVM
+        long freeMemory = runtime.freeMemory();   // Free memory within the allocated total
+        long usedMemory = totalMemory - freeMemory;
+        long usedMemoryMB = usedMemory / (1024L * 1024L); // Convert to MB
+        System.out.println("Used Memory: " + usedMemoryMB + " MB");
     }
 }
