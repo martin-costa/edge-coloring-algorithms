@@ -132,8 +132,21 @@ public class EdgeColoring {
         return true;
     }
 
+    public boolean setEdgeColor(Edge edge, int color, SeparableCollection collection) {
+
+        // TODO: Add option to UPDATE instead of DESTROY the u-component
+        collection.destroyDamagedComponent(edge.u(), color);
+        collection.destroyDamagedComponent(edge.v(), color);
+
+        return setEdgeColor(edge, color);
+    }
+
     public boolean setEdgeColor(int u, int v, int color) {
         return setEdgeColor(new Edge(u, v), color);
+    }
+
+    public boolean setEdgeColor(int u, int v, int color, SeparableCollection collection) {
+        return setEdgeColor(new Edge(u, v), color, collection);
     }
 
     // Get the color of an edge
@@ -170,7 +183,7 @@ public class EdgeColoring {
         if (vertexColorToEdge.containsKey(new Pair<>(vertex, color))) {
             throw new IllegalArgumentException("Color " + color + " is already used at vertex " + vertex);
         }
-        
+
         return missingColors.get(vertex).remove(color);
     }
 
