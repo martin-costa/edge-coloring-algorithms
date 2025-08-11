@@ -164,6 +164,26 @@ public class EdgeColoring {
         return vertexColorToEdge.get(new Pair<>(vertex, color)) == null;
     }
 
+    // Ensures 'color' is not missing at vertex 
+    public boolean addBlockedColor(int vertex, int color) {
+
+        if (vertexColorToEdge.containsKey(new Pair<>(vertex, color))) {
+            throw new IllegalArgumentException("Color " + color + " is already used at vertex " + vertex);
+        }
+        
+        return missingColors.get(vertex).remove(color);
+    }
+
+    // Make 'color' missing at vertex
+    public void removeBlockedColor(int vertex, int color) {
+
+        if (vertexColorToEdge.containsKey(new Pair<>(vertex, color))) {
+            throw new IllegalArgumentException("Color " + color + " is already used at vertex " + vertex);
+        }
+
+        missingColors.get(vertex).add(color);
+    }
+
     // Get the edges of the graph
     public HashMap<Integer, Set<Integer>> getEdges() {
         return edges;
